@@ -64,7 +64,7 @@ setPinsToNumber(0)
 var = 0
 while(True):
     var = input("Input a number (0 - 15) or \"q\" to quit")
-    if(var == "q"):
+    if(var == 'q'):
         break
     setPinsToNumber(int(var))
 
