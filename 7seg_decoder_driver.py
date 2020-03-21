@@ -25,6 +25,7 @@ def clean_up():
     GPIO.cleanup([x0_pin, x1_pin, x2_pin, x3_pin])
 
 def set_display(value):
+    global display_value
     if(value < 16 and value >= 0):
         display_value = value
         x0_value = value & 1
