@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import random as rand
 
 #The EEPROM chip has addressing pins A0-A12, but A11 and A12 are tied to VDD
 #This cuts the total addressing space to 2048 bytes
@@ -37,7 +38,7 @@ def disable_chip():
 def enable_output():
     GPIO.output(out_en_pin, 0)
     
-def disable_ouput():
+def disable_output():
     GPIO.output(out_en_pin, 1)
     
 def enable_write():
@@ -76,7 +77,7 @@ def readDataPins():
 
 def setDataPins(data):
     if(data < 0 or  data > 255):
-	return -1
+        return -1
     GPIO.output(data_pins, getBinaryArray(data, 8))
     return 0
 
@@ -106,7 +107,7 @@ def read_addr(address):
     
     #set address
     if(set_address(address) == -1):
-	return -1
+        return -1
 
     #read data at current address
     word = readDataPins()
@@ -121,12 +122,12 @@ def write(byte):
     GPIO.setup(data_pins, GPIO.OUT)
     
     #set control pins
-    disableOutput()
-    enableWrite() #locks the address in
+    disable_output()
+    enable_write() #locks the address in
     
     #read data
-    setDataPins(data)
-    disableWrite() #locks the data in
+    setDataPins(byte)
+    disable_write() #locks the data in
 
     time.sleep(0.01) #10 ms is max write cycle time
 
@@ -139,12 +140,12 @@ def write_addr(byte, address):
         return -1
 
     #set control pins
-    disableOutput()
-    enableWrite() #locks the address in
+    disable_output()
+    enable_write() #locks the address in
     
     #read data
-    setDataPins(data)
-    disableWrite() #locks the data in
+    setDataPins(byte)
+    disable_write() #locks the data in
     
     time.sleep(0.01) #10 ms is max write cycle time
 
@@ -154,30 +155,32 @@ def getBinaryArray(intVal, arrLength):
     for x in range(arrLength):
         arr.append(intVal & bit)
         bit = bit * 2
-    print(arr)
+    #print(arr)
     return arr
 
 def formIntFromBinaryArray(arr):
     value = 0
-    for i in range(arr.length()):
+    for i in range(len(arr)):
         value = value + (arr[i] << i)
     return value
     
 def main():
     setup()
     enable_chip()
+    
+    for x in range(10):
+        value = rand.randrange(0, 256)
+        adr = rand.randrange(0, 2048)
+        
+        print("Writing ", value, " to address ", adr)
+        write_addr(value, adr)
 
-    set_address(10)
+        print("Value at address ", adr, " is ", read_addr(adr))
 
-    for x in range(5):
-        write(x)
-        decrement_address()
-
-    for x in range(6, 11):
-        print(read_addr(x))
-
+        print()
+        
     disable_chip()
-    cleanUp()
+    clean_up()
 
 if __name__ == "__main__":
     main()
