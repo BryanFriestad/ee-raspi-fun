@@ -81,22 +81,6 @@ def setDataPins(data):
     GPIO.output(data_pins, getBinaryArray(data, 8))
     return 0
 
-def read():
-    #set data pins to be input
-    GPIO.setup(data_pins, GPIO.IN)
-    
-    #set control pins
-    disable_write()
-    enable_output()
-    
-    #read data at current address
-    word = readDataPins()
-
-    #disable output
-    disable_output()
-
-    return word
-
 def read_addr(address):
     #set data pins to be input
     GPIO.setup(data_pins, GPIO.IN)
@@ -117,20 +101,6 @@ def read_addr(address):
 
     return word
 
-def write(byte):
-    #set data pins to be output
-    GPIO.setup(data_pins, GPIO.OUT)
-    
-    #set control pins
-    disable_output()
-    enable_write() #locks the address in
-    
-    #read data
-    setDataPins(byte)
-    disable_write() #locks the data in
-
-    time.sleep(0.01) #10 ms is max write cycle time
-
 def write_addr(byte, address):
     #set data pins to be output
     GPIO.setup(data_pins, GPIO.OUT)
@@ -148,6 +118,7 @@ def write_addr(byte, address):
     disable_write() #locks the data in
     
     time.sleep(0.01) #10 ms is max write cycle time
+    return 0
 
 def getBinaryArray(intVal, arrLength):
     arr = []
@@ -168,17 +139,23 @@ def main():
     setup()
     enable_chip()
     
-    for x in range(10):
+    inv_cnt = 0
+    
+    for x in range(100):
         value = rand.randrange(0, 256)
         adr = rand.randrange(0, 2048)
         
-        print("Writing ", value, " to address ", adr)
         write_addr(value, adr)
-
-        print("Value at address ", adr, " is ", read_addr(adr))
-
-        print()
+        read_value = read_addr(adr)
         
+        if(value != read_value):
+            inv_cnt = inv_cnt + 1
+            print("Invalid write!")
+            print("Writing ", value, " to address ", adr)
+            print("Value at address ", adr, " is ", read_value)
+            print()
+        
+    print("Done! ", inv_cnt, " invalid writes.")
     disable_chip()
     clean_up()
 
